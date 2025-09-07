@@ -10,6 +10,11 @@ export default class ProductController {
                 return res.status(400).json({ error: "Todos los campos son obligatorios" });
             }
 
+            const existing = await ProductModel.getProductByIdprod(idprod, collection);
+            if (existing) {
+                return res.status(409).json({ error: "Ya existe un producto con ese idprod" });
+            }
+
             const product = new ProductModel(idprod, type, family, image, name, player, state, collection);
             const createdId = await product.createProduct();
 

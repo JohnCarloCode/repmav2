@@ -1,4 +1,4 @@
-import { doc, setDoc, getDoc, updateDoc, deleteDoc, getDocs, collection } from "firebase/firestore";
+import { doc, addDoc, getDoc, updateDoc, deleteDoc, getDocs, collection, query, where } from "firebase/firestore";
 import { db } from "../config/firebase.js";
 
 export default class ProductModel {
@@ -16,8 +16,9 @@ export default class ProductModel {
 
     async createProduct() {
         try {
-            const docRef = doc(db, this.collection, this.idprod);
-            await setDoc(docRef, {
+            const colRef = collection(db, this.collection);
+            const docData = {
+                idprod: this.idprod,
                 type: this.type,
                 family: this.family,
                 name: this.name,
@@ -25,9 +26,10 @@ export default class ProductModel {
                 image: this.image,
                 state: this.state,
                 createdAt: this.createdAt
-            });
-            console.log(`Producto con idprod = ${this.idprod} creado`);
-            return this.idprod;
+            };
+            const docRef = await addDoc(colRef, docData);
+            console.log(`Producto creado con Firestore ID = ${docRef.id} y idprod = ${this.idprod}`);
+            return docRef.id;
         } catch (error) {
             console.error("Error al crear el producto:", error);
             throw error;
@@ -36,14 +38,16 @@ export default class ProductModel {
 
     static async getProductByIdprod(idprod, collectionName) {
         try {
-            const docRef = doc(db, collectionName, idprod);
-            const docSnap = await getDoc(docRef);
+            const colRef = collection(db, collectionName);
+            const q = query(colRef, where("idprod", "==", idprod));
+            const snapshot = await getDocs(q);
 
-            if (!docSnap.exists()) {
+            if (snapshot.empty) {
                 console.log(`Producto con idprod = ${idprod} no se encontró en ${collectionName}`);
                 return null;
             }
 
+            const docSnap = snapshot.docs[0];
             return { _docId: docSnap.id, ...docSnap.data() };
         } catch (error) {
             console.error(`Error al obtener producto con idprod = ${idprod}:`, error);
@@ -53,18 +57,17 @@ export default class ProductModel {
 
     static async updateProductByIdprod(idprod, collectionName, updateData = {}) {
         try {
-            const docRef = doc(db, collectionName, idprod);
-            const docSnap = await getDoc(docRef);
+            const colRef = collection(db, collectionName);
+            const q = query(colRef, where("idprod", "==", idprod));
+            const snapshot = await getDocs(q);
 
-            if (!docSnap.exists()) {
+            if (snapshot.empty) {
                 console.log(`Producto con idprod = ${idprod} no se encontró en ${collectionName}`);
                 return false;
             }
 
-            if (Object.keys(updateData).length === 0) {
-                console.log("No hay datos para actualizar");
-                return false;
-            }
+            const docSnap = snapshot.docs[0];
+            const docRef = doc(db, collectionName, docSnap.id);
 
             await updateDoc(docRef, updateData);
             console.log(`Producto con idprod = ${idprod} actualizado en ${collectionName}`);
@@ -77,13 +80,17 @@ export default class ProductModel {
 
     static async deleteProductByIdprod(idprod, collectionName) {
         try {
-            const docRef = doc(db, collectionName, idprod);
-            const docSnap = await getDoc(docRef);
+            const colRef = collection(db, collectionName);
+            const q = query(colRef, where("idprod", "==", idprod));
+            const snapshot = await getDocs(q);
 
-            if (!docSnap.exists()) {
+            if (snapshot.empty) {
                 console.log(`Producto con idprod = ${idprod} no se encontró en ${collectionName}`);
                 return false;
             }
+
+            const docSnap = snapshot.docs[0];
+            const docRef = doc(db, collectionName, docSnap.id);
 
             await deleteDoc(docRef);
             console.log(`Producto con idprod = ${idprod} eliminado de ${collectionName}`);
@@ -93,7 +100,6 @@ export default class ProductModel {
             throw error;
         }
     }
-
     static async getProducts(collectionName) {
         try {
             const colRef = collection(db, collectionName);
