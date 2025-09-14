@@ -29,7 +29,19 @@ export default function Products() {
   };
 
   const handleSave = async () => {
-    await updateProduct(editingId, formData);
+    const payload = {
+      season: formData.season,
+      type: formData.type,
+      family: formData.family,
+      quality: formData.quality,
+      player: formData.player,
+      name: formData.name,
+      state: formData.state,
+      image: formData.image,
+    };
+
+    await updateProduct(editingId, payload);
+
     await loadProducts();
     setEditingId(null);
   };
