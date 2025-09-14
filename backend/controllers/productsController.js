@@ -4,9 +4,9 @@ export default class ProductController {
 
     static async create(req, res) {
         try {
-            const { idprod, type, family, image, name, player, state, collection } = req.body;
+            const { idprod, type, family, image, name, player, state, collection, season, quality } = req.body;
 
-            if (!idprod || !type || !family || !image || !name || !player || !state || !collection) {
+            if (!idprod || !type || !family || !image || !name || !player || !state || !collection || !season || !quality) {
                 return res.status(400).json({ error: "Todos los campos son obligatorios" });
             }
 
@@ -15,7 +15,7 @@ export default class ProductController {
                 return res.status(409).json({ error: "Ya existe un producto con ese idprod" });
             }
 
-            const product = new ProductModel(idprod, type, family, image, name, player, state, collection);
+            const product = new ProductModel(idprod, type, family, image, name, player, state, collection, season, quality);
             const createdId = await product.createProduct();
 
             return res.status(201).json({ message: "Producto creado", idprod: createdId });
