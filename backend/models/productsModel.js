@@ -2,7 +2,7 @@ import { doc, addDoc, getDoc, updateDoc, deleteDoc, getDocs, collection, query, 
 import { db } from "../config/firebase.js";
 
 export default class ProductModel {
-    constructor(idprod, type, family, image, name, player, state, collection) {
+    constructor(idprod, type, family, image, name, player, state, collection, season, quality) {
         this.idprod = idprod;
         this.type = type;
         this.family = family;
@@ -12,6 +12,8 @@ export default class ProductModel {
         this.state = state;
         this.createdAt = new Date();
         this.collection = collection;
+        this.season = season;
+        this.quality = quality;
     }
 
     async createProduct() {
@@ -25,6 +27,8 @@ export default class ProductModel {
                 player: this.player,
                 image: this.image,
                 state: this.state,
+                season: this.season,
+                quality: this.quality,
                 createdAt: this.createdAt
             };
             const docRef = await addDoc(colRef, docData);
